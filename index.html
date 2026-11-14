@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Junior Astronaut: Artemis Ay Görevi</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Arka Planda Tüm Ekranı Kaplayan Canlı Uzay & Roket Sahnesi -->
+  <canvas id="space-canvas"></canvas>
+
+  <!-- Sol Üst: Görev Başlığı ve Aşama Bilgisi -->
+  <header class="hud-top-left">
+    <h1>🐱 ASTROMEOW SPACE MISSION 🐱</h1>
+    <div class="phase-badge" id="phase-badge">STEP: PREPAIRING</div>
+  </header>
+
+  <!-- Sağ Üst: 3 Temel Kaynak Barı -->
+  <aside class="hud-top-right">
+    <div class="res-row">
+      <div class="res-label"><span>⚡ Power</span><span id="val-power">80%</span></div>
+      <div class="bar-bg"><div id="bar-power" class="bar-fill power" style="width: 80%"></div></div>
+    </div>
+    <div class="res-row">
+      <div class="res-label"><span>🫧 Oxygen</span><span id="val-oxygen">80%</span></div>
+      <div class="bar-bg"><div id="bar-oxygen" class="bar-fill oxygen" style="width: 80%"></div></div>
+    </div>
+    <div class="res-row">
+      <div class="res-label"><span>🛡️ Shield</span><span id="val-shield">70%</span></div>
+      <div class="bar-bg"><div id="bar-shield" class="bar-fill shield" style="width: 70%"></div></div>
+    </div>
+  </aside>
+
+  <!-- Alt Kısım: Hikâye Metni, Taş Kartları ve Karar Butonları -->
+  <main class="hud-bottom">
+    <div class="event-box">
+      <span class="nasa-badge" id="nasa-tag">NASA ASTROMEOW PROGRAM</span>
+      <h2 id="event-title">Ready for Launch, Commander?</h2>
+      <p id="event-desc">Fly to the Moon, collect a valuable lunar mineral sample on the surface, and return safely to Earth. Every engineering choice affects your resources!</p>
+    </div>
+
+    <!-- Ay Yüzeyi Taş Seçimi (Sadece 2. Aşamada Açılır) -->
+    <div class="rock-grid hidden" id="rock-grid"></div>
+
+    <!-- Karar Butonları -->
+    <div class="choices" id="choices-container">
+      <button class="choice-btn" onclick="startMission()">Initiate Launch </button>
+    </div>
+  </main>
+
+  <script src="scenarios.js"></script>
+  <script src="scene.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
