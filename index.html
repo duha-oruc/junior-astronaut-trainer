@@ -1,51 +1,38 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Junior Astronaut: Artemis Ay Görevi</title>
+  <title>Junior Astronaut: Artemis Moon Mission</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <!-- Arka Planda Tüm Ekranı Kaplayan Canlı Uzay & Roket Sahnesi -->
+  <!-- Full-Screen Live Space & Rocket Scene -->
   <canvas id="space-canvas"></canvas>
 
-  <!-- Sol Üst: Görev Başlığı ve Aşama Bilgisi -->
+  <!-- Top Left: Mission Title & Phase -->
   <header class="hud-top-left">
-    <h1>🐱 ASTROMEOW SPACE MISSION 🐱</h1>
-    <div class="phase-badge" id="phase-badge">STEP: PREPAIRING</div>
+    <h1>🚀 ARTEMIS MOON MISSION</h1>
+    <div class="phase-badge" id="phase-badge">PHASE: PRE-LAUNCH</div>
   </header>
 
-  <!-- Sağ Üst: 3 Temel Kaynak Barı -->
-  <aside class="hud-top-right">
-    <div class="res-row">
-      <div class="res-label"><span>⚡ Power</span><span id="val-power">80%</span></div>
-      <div class="bar-bg"><div id="bar-power" class="bar-fill power" style="width: 80%"></div></div>
-    </div>
-    <div class="res-row">
-      <div class="res-label"><span>🫧 Oxygen</span><span id="val-oxygen">80%</span></div>
-      <div class="bar-bg"><div id="bar-oxygen" class="bar-fill oxygen" style="width: 80%"></div></div>
-    </div>
-    <div class="res-row">
-      <div class="res-label"><span>🛡️ Shield</span><span id="val-shield">70%</span></div>
-      <div class="bar-bg"><div id="bar-shield" class="bar-fill shield" style="width: 70%"></div></div>
-    </div>
+  <!-- Top Right: Single Mission Oxygen Timer -->
+  <aside class="hud-top-right timer-panel" id="timer-panel">
+    <div class="timer-title">🫧 OXYGEN / MISSION TIME</div>
+    <div class="timer-display" id="main-timer">60s</div>
   </aside>
 
-  <!-- Alt Kısım: Hikâye Metni, Taş Kartları ve Karar Butonları -->
+  <!-- Bottom HUD: Story, Rock Cards & Action Buttons -->
   <main class="hud-bottom">
     <div class="event-box">
-      <span class="nasa-badge" id="nasa-tag">NASA ASTROMEOW PROGRAM</span>
+      <span class="nasa-badge" id="nasa-tag">NASA ARTEMIS PROGRAM</span>
       <h2 id="event-title">Ready for Launch, Commander?</h2>
-      <p id="event-desc">Fly to the Moon, collect a valuable lunar mineral sample on the surface, and return safely to Earth. Every engineering choice affects your resources!</p>
+      <p id="event-desc">Complete pre-launch checks, collect the target lunar mineral, and return safely to Earth before your oxygen timer hits zero!</p>
     </div>
 
-    <!-- Ay Yüzeyi Taş Seçimi (Sadece 2. Aşamada Açılır) -->
-    <div class="rock-grid hidden" id="rock-grid"></div>
-
-    <!-- Karar Butonları -->
+    <!-- Decision Buttons -->
     <div class="choices" id="choices-container">
-      <button class="choice-btn" onclick="startMission()">Initiate Launch </button>
+      <button class="choice-btn" onclick="startMission()">Start Pre-Launch Prep 🚀</button>
     </div>
   </main>
 

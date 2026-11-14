@@ -1,99 +1,168 @@
-let state = { power: 80, oxygen: 80, shield: 70 };
+let timeLeft = 60;
+let timerInterval = null;
+let prepStepIndex = 0;
+let lastReturnIdx = -1;
 
-function updateUI() {
-  ["power", "oxygen", "shield"].forEach((key) => {
-    const val = Math.max(0, Math.min(100, state[key]));
-    state[key] = val;
-    document.getElementById(`val-${key}`).innerText = `${val}%`;
-    document.getElementById(`bar-${key}`).style.width = `${val}%`;
-  });
-}
+function updateTimerUI() {
+  timeLeft = Math.max(0, timeLeft);
+  const timerEl = document.getElementById("main-timer");
+  const panelEl = document.getElementById("timer-panel");
 
-function checkFailure(customMsg) {
-  if (state.power <= 0 || state.oxygen <= 0 || state.shield <= 0) {
-    document.getElementById("rock-grid").classList.add("hidden");
-    document.getElementById("phase-badge").innerText = "MISSION ABORTED";
-    document.getElementById("nasa-tag").innerText = "CRITICAL SYSTEM WARNING";
-    document.getElementById("event-title").innerText = "⚠️ Mission Aborted!";
-    document.getElementById("event-desc").innerText =
-      customMsg || "One of your critical resources hit 0%, triggering an emergency abort capsule return.";
-    document.getElementById("choices-container").innerHTML =
-      `<button class="choice-btn" onclick="startMission()">LET'S TRY AGAIN 😻</button>`;
-    return true;
+  if (timerEl) timerEl.innerText = `${timeLeft}s`;
+
+  if (panelEl) {
+    if (timeLeft <= 15 && timerInterval !== null) {
+      panelEl.classList.add("critical");
+    } else {
+      panelEl.classList.remove("critical");
+    }
   }
-  return false;
 }
 
-// PHASE 1: OUTBOUND SPACE TRANSIT
-function startMission() {
-  state = { power: 80, oxygen: 80, shield: 70 };
-  currentScene = "outbound";
-  updateUI();
-  document.getElementById("rock-grid").classList.add("hidden");
-  document.getElementById("phase-badge").innerText = "PHASE 1/3: LUNAR TRANSIT";
+function startCountdown() {
+  if (timerInterval) return;
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimerUI();
 
-  const crisis = OUTBOUND_CRISES[Math.floor(Math.random() * OUTBOUND_CRISES.length)];
-  renderCrisis(crisis, (feedback) => {
-    showTransition(feedback, "Land on the Moon 🌑", startMoonSurfaceTask);
+    if (timeLeft <= 0) {
+      stopCountdown();
+      abortMission("Time's up! Your oxygen reserve hit 0 seconds before completing the mission.");
+    }
+  }, 1000);
+}
+
+function stopCountdown() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+  const panelEl = document.getElementById("timer-panel");
+  if (panelEl) panelEl.classList.remove("critical");
+}
+
+function pickUniqueRandom(list, lastIndex) {
+  if (list.length <= 1) return { item: list[0], index: 0 };
+  let idx;
+  do {
+    idx = Math.floor(Math.random() * list.length);
+  } while (idx === lastIndex);
+  return { item: list[idx], index: idx };
+}
+
+function abortMission(reason) {
+  stopCountdown();
+  surfaceRocks = [];
+  hoveredRock = null;
+  document.getElementById("phase-badge").innerText = "MISSION ABORTED";
+  document.getElementById("nasa-tag").innerText = "OXYGEN DEPLETED";
+  document.getElementById("event-title").innerText = "⚠️ Out of Time / Oxygen!";
+  document.getElementById("event-desc").innerText = reason;
+  document.getElementById("choices-container").innerHTML =
+    `<button class="choice-btn" onclick="startMission()">Retry Mission 🔄</button>`;
+}
+
+// BAŞLANGIÇ: DÜNYA FIRLATMA RAMPASINDA HAZIRLIK ADIMLARI
+function startMission() {
+  stopCountdown();
+  timeLeft = 60;
+  prepStepIndex = 0;
+  surfaceRocks = [];
+  hoveredRock = null;
+  currentScene = "earth"; // Dünya'da açık hava sahnesi
+  updateTimerUI();
+  startCountdown();
+
+  runPrelaunchStep();
+}
+
+function runPrelaunchStep() {
+  if (prepStepIndex >= PRELAUNCH_CHECKS.length) {
+    startOutboundTransit();
+    return;
+  }
+
+  const check = PRELAUNCH_CHECKS[prepStepIndex];
+  document.getElementById("phase-badge").innerText = `PRE-LAUNCH CHECK (${prepStepIndex + 1}/3)`;
+  document.getElementById("nasa-tag").innerText = check.nasaTag;
+  document.getElementById("event-title").innerText = check.title;
+  document.getElementById("event-desc").innerText = check.desc;
+
+  const container = document.getElementById("choices-container");
+  container.innerHTML = "";
+
+  check.choices.forEach((choice) => {
+    const btn = document.createElement("button");
+    btn.className = "choice-btn";
+    btn.innerText = choice.text;
+    btn.onclick = () => {
+      timeLeft += choice.timeBonus;
+      updateTimerUI();
+
+      prepStepIndex++;
+      const nextLabel =
+        prepStepIndex < PRELAUNCH_CHECKS.length ? "Next Pre-Launch Check ➡️" : "Liftoff to the Moon! 🚀";
+      showTransition(choice.feedback, nextLabel, runPrelaunchStep);
+    };
+    container.appendChild(btn);
   });
 }
 
-// PHASE 2: LUNAR SURFACE ROCK COLLECTION
+// AŞAMA 1: FIRLATMA VE AY'A YOLCULUK
+function startOutboundTransit() {
+  currentScene = "outbound";
+
+  document.getElementById("phase-badge").innerText = "PHASE 1/3: LUNAR TRANSIT";
+  document.getElementById("nasa-tag").innerText = "NASA ARTEMIS TRAJECTORY";
+  document.getElementById("event-title").innerText = "🚀 Liftoff! En Route to the Moon";
+  document.getElementById("event-desc").innerText =
+    `Your mission clock is ticking (${timeLeft}s oxygen left)! Proceed quickly to lunar landing.`;
+
+  const container = document.getElementById("choices-container");
+  container.innerHTML = `<button class="choice-btn" onclick="startMoonSurfaceTask()">Land on the Moon 🌑</button>`;
+}
+
+// AŞAMA 2: AY YÜZEYİ TAŞ TOPLAMA GÖREVİ
 function startMoonSurfaceTask() {
   currentScene = "moon";
+
   document.getElementById("phase-badge").innerText = "PHASE 2/3: LUNAR SURFACE";
   document.getElementById("nasa-tag").innerText = MOON_MISSION.nasaTag;
   document.getElementById("event-title").innerText = MOON_MISSION.title;
-  document.getElementById("event-desc").innerText = MOON_MISSION.desc;
+  document.getElementById("event-desc").innerText =
+    "Hover over the rocks on the lunar surface to inspect their mineral clues, then click the titanium-rich Ilmenite rock to collect it!";
   document.getElementById("choices-container").innerHTML = "";
 
-  const rockGrid = document.getElementById("rock-grid");
-  rockGrid.innerHTML = "";
-  rockGrid.classList.remove("hidden");
-
-  MOON_MISSION.rocks.forEach((rock) => {
-    const card = document.createElement("div");
-    card.className = "rock-card";
-    card.innerHTML = `
-      <span class="rock-icon">${rock.icon}</span>
-      <div class="rock-name">${rock.name}</div>
-      <div class="rock-clue">${rock.clue}</div>
-    `;
-    card.onclick = () => handleRockClick(rock);
-    rockGrid.appendChild(card);
-  });
+  setupSurfaceRocks(MOON_MISSION.rocks);
 }
 
 function handleRockClick(rock) {
   if (rock.isTarget) {
-    document.getElementById("rock-grid").classList.add("hidden");
+    rock.collected = true;
+    hoveredRock = null;
+    surfaceRocks = [];
     showTransition(rock.successMsg, "Launch Return to Earth 🌍", startReturnPhase);
   } else {
-    state.oxygen -= 10;
-    state.power -= 5;
-    updateUI();
+    rock.collected = true;
+    hoveredRock = null;
+    timeLeft -= 8;
+    updateTimerUI();
     document.getElementById("event-desc").innerText = `❌ ${rock.wrongMsg}`;
-    checkFailure("You ran out of oxygen while searching the lunar surface!");
+    if (timeLeft <= 0) {
+      abortMission("Wrong rock samples drained your remaining oxygen!");
+    }
   }
 }
 
-// PHASE 3: EARTH RETURN CRISIS
+// AŞAMA 3: DÜNYA'YA DÖNÜŞ KRİZİ
 function startReturnPhase() {
   currentScene = "return";
   document.getElementById("phase-badge").innerText = "PHASE 3/3: EARTH RETURN";
-  const crisis = RETURN_CRISES[Math.floor(Math.random() * RETURN_CRISES.length)];
-  renderCrisis(crisis, (feedback) => {
-    document.getElementById("phase-badge").innerText = "MISSION ACCOMPLISHED";
-    document.getElementById("nasa-tag").innerText = "NASA MISSION REPORT: SUCCESS";
-    document.getElementById("event-title").innerText = "🏆 Great Job, Junior Astronaut!";
-    document.getElementById("event-desc").innerText =
-      `${feedback} You delivered the lunar sample to NASA scientists! Final Stats — Power: ${state.power}%, Oxygen: ${state.oxygen}%, Shield: ${state.shield}%`;
-    document.getElementById("choices-container").innerHTML =
-      `<button class="choice-btn" onclick="startMission()">LET'S TRY AGAIN 😻</button>`;
-  });
-}
 
-function renderCrisis(crisis, onSuccess) {
+  const picked = pickUniqueRandom(RETURN_CRISES, lastReturnIdx);
+  lastReturnIdx = picked.index;
+  const crisis = picked.item;
+
   document.getElementById("nasa-tag").innerText = crisis.nasaTag;
   document.getElementById("event-title").innerText = crisis.title;
   document.getElementById("event-desc").innerText = crisis.desc;
@@ -106,13 +175,22 @@ function renderCrisis(crisis, onSuccess) {
     btn.className = "choice-btn";
     btn.innerText = choice.text;
     btn.onclick = () => {
-      state.power += choice.effects.power;
-      state.oxygen += choice.effects.oxygen;
-      state.shield += choice.effects.shield;
-      updateUI();
-      if (!checkFailure()) {
-        onSuccess(choice.feedback);
+      timeLeft += choice.timeDelta;
+      updateTimerUI();
+
+      if (timeLeft <= 0) {
+        abortMission("Your oxygen ran out during Earth re-entry!");
+        return;
       }
+
+      stopCountdown();
+      document.getElementById("phase-badge").innerText = "MISSION ACCOMPLISHED";
+      document.getElementById("nasa-tag").innerText = "NASA MISSION REPORT: SUCCESS";
+      document.getElementById("event-title").innerText = "🏆 Great Job, Junior Astronaut!";
+      document.getElementById("event-desc").innerText =
+        `${choice.feedback} You delivered the lunar sample safely with ${timeLeft} seconds of oxygen to spare!`;
+      document.getElementById("choices-container").innerHTML =
+        `<button class="choice-btn" onclick="startMission()">Play Again 🔄</button>`;
     };
     container.appendChild(btn);
   });
