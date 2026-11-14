@@ -51,6 +51,7 @@ function pickUniqueRandom(list, lastIndex) {
 }
 
 function abortMission(reason) {
+  document.getElementById("rock-checklist-panel").classList.add("hidden");
   stopCountdown();
   surfaceRocks = [];
   hoveredRock = null;
@@ -64,6 +65,7 @@ function abortMission(reason) {
 
 // BAŞLANGIÇ: DÜNYA FIRLATMA RAMPASINDA HAZIRLIK ADIMLARI
 function startMission() {
+  document.getElementById("rock-checklist-panel").classList.add("hidden");
   stopCountdown();
   timeLeft = 60;
   prepStepIndex = 0;
@@ -122,34 +124,84 @@ function startOutboundTransit() {
   container.innerHTML = `<button class="choice-btn" onclick="startMoonSurfaceTask()">Land on the Moon 🌑</button>`;
 }
 
-// AŞAMA 2: AY YÜZEYİ TAŞ TOPLAMA GÖREVİ
+let targetRocksList = []; // { name, icon, collected }
+
+function renderChecklistUI() {
+  const ul = document.getElementById("rock-checklist");
+  ul.innerHTML = "";
+  targetRocksList.forEach((item) => {
+    const li = document.createElement("li");
+    if (item.collected) li.classList.add("done");
+    li.innerText = `${item.collected ? "☑️" : "⬜"} ${item.icon} ${item.name}`;
+    ul.appendChild(li);
+  });
+}
+
+// AŞAMA 2: AY YÜZEYİ KUŞBAKIŞI TAŞ TOPLAMA
 function startMoonSurfaceTask() {
   currentScene = "moon";
 
-  document.getElementById("phase-badge").innerText = "PHASE 2/3: LUNAR SURFACE";
+  // 6 taş arasından rastgele 3 veya 4 hedef taş seç
+  const targetCount = Math.random() < 0.5 ? 3 : 4;
+  const shuffledPool = [...MOON_MISSION.allRocks].sort(() => Math.random() - 0.5);
+  const selectedTargets = shuffledPool.slice(0, targetCount);
+
+  targetRocksList = selectedTargets.map((r) => ({
+    name: r.name,
+    icon: r.icon,
+    collected: false
+  }));
+
+  document.getElementById("phase-badge").innerText = `PHASE 2/3: COLLECT ${targetCount} SAMPLES`;
   document.getElementById("nasa-tag").innerText = MOON_MISSION.nasaTag;
   document.getElementById("event-title").innerText = MOON_MISSION.title;
-  document.getElementById("event-desc").innerText =
-    "Hover over the rocks on the lunar surface to inspect their mineral clues, then click the titanium-rich Ilmenite rock to collect it!";
+  document.getElementById("event-desc").innerText = MOON_MISSION.desc;
   document.getElementById("choices-container").innerHTML = "";
 
-  setupSurfaceRocks(MOON_MISSION.rocks);
+  // Sol görev listesini göster
+  document.getElementById("rock-checklist-panel").classList.remove("hidden");
+  renderChecklistUI();
+
+  // 6 taşı kuşbakışı zemine yerleştir
+  setupTopDownMoon(MOON_MISSION.allRocks, targetNamesSet);
 }
 
-function handleRockClick(rock) {
+function handleRockCollect(rock) {
   if (rock.isTarget) {
     rock.collected = true;
-    hoveredRock = null;
-    surfaceRocks = [];
-    showTransition(rock.successMsg, "Launch Return to Earth 🌍", startReturnPhase);
+    nearbyRock = null;
+
+    // Listede işaretle
+    const targetItem = targetRocksList.find((t) => t.name === rock.name);
+    if (targetItem) targetItem.collected = true;
+    renderChecklistUI();
+
+    const remaining = targetRocksList.filter((t) => !t.collected).length;
+
+    if (remaining === 0) {
+      // Tüm hedef taşlar toplandı!
+      document.getElementById("rock-checklist-panel").classList.add("hidden");
+      surfaceRocks = [];
+      showTransition(
+        "All target samples collected! Ready to launch back to Earth.",
+        "Launch Return to Earth 🌍",
+        startReturnPhase
+      );
+    } else {
+      document.getElementById("event-desc").innerText =
+        `✅ Collected ${rock.name}! ${remaining} sample(s) remaining on your checklist.`;
+    }
   } else {
+    // Listede olmayan yanlış taş
     rock.collected = true;
-    hoveredRock = null;
-    timeLeft -= 8;
+    nearbyRock = null;
+    timeLeft -= 6;
     updateTimerUI();
-    document.getElementById("event-desc").innerText = `❌ ${rock.wrongMsg}`;
+    document.getElementById("event-desc").innerText =
+      `❌ ${rock.name} is NOT on your mission checklist! (-6s Oxygen)`;
+
     if (timeLeft <= 0) {
-      abortMission("Wrong rock samples drained your remaining oxygen!");
+      abortMission("Collecting the wrong minerals drained your remaining oxygen!");
     }
   }
 }
@@ -162,6 +214,11 @@ function startReturnPhase() {
   const picked = pickUniqueRandom(RETURN_CRISES, lastReturnIdx);
   lastReturnIdx = picked.index;
   const crisis = picked.item;
+
+  if (typeof liveNasaData !== "undefined" && liveNasaData.isLive) {
+    crisis.nasaTag = `🔴 LIVE NASA TELEMETRY (${liveNasaData.solarFlareDate})`;
+    crisis.desc += ` [LIVE DATA: NASA DONKI recorded a Class ${liveNasaData.solarFlareClass} solar flare & asteroid ${liveNasaData.nearestAsteroidName} passing at ${liveNasaData.nearestAsteroidSpeed} km/h!]`;
+  }
 
   document.getElementById("nasa-tag").innerText = crisis.nasaTag;
   document.getElementById("event-title").innerText = crisis.title;

@@ -56,37 +56,45 @@ const PRELAUNCH_CHECKS = [
 ];
 
 const MOON_MISSION = {
-  nasaTag: "NASA APOLLO / ARTEMIS GEOLOGY DATA",
-  title: "🌑 Lunar Surface Task: Find the Ilmenite Rock!",
-  desc: "NASA scientists need dark, heavy, metallic-sparkling 'Ilmenite' rich in titanium to produce oxygen and fuel. Pick the right rock before your timer runs out!",
-  rocks: [
+  nasaTag: "NASA ARTEMIS GEOLOGY SURVEY",
+  title: "🌑 Lunar Surface EVA: Collect Target Samples!",
+  desc: "Use WASD or Arrow Keys to walk across the lunar surface. Approach a rock to scan its info box, and press ENTER to collect the minerals on your checklist!",
+  allRocks: [
+    {
+      icon: "🌑",
+      name: "Metallic Ilmenite",
+      color: "#1e293b",
+      clue: "Dark titanium-iron oxide mineral used to produce lunar oxygen."
+    },
     {
       icon: "🪨",
       name: "White Anorthosite",
-      clue: "Light-colored highland crust rock rich in calcium and aluminum.",
-      isTarget: false,
-      wrongMsg: "That's an ancient highland rock, not rich in titanium! (-8s Oxygen)"
-    },
-    {
-      icon: "🌑",
-      name: "Dark Metallic Ilmenite",
-      clue: "Dark gray-black, heavy mineral with a metallic shine rich in titanium.",
-      isTarget: true,
-      successMsg: "Awesome! You collected Ilmenite. Future Moon bases can extract oxygen from this mineral!"
+      color: "#e2e8f0",
+      clue: "Light-colored ancient highland crust rock rich in calcium."
     },
     {
       icon: "🧱",
-      name: "Glass-Bead Regolith",
-      clue: "Tiny orange volcanic glass beads formed by ancient lava fountains.",
-      isTarget: false,
-      wrongMsg: "Cool volcanic glass beads, but not the titanium mineral we need! (-8s Oxygen)"
+      name: "Orange Glass Regolith",
+      color: "#fb923c",
+      clue: "Volcanic glass beads formed by ancient lunar fire fountains."
     },
     {
       icon: "🏔️",
-      name: "Lunar Breccia",
-      clue: "Angular rock fragments fused together by meteorite impacts.",
-      isTarget: false,
-      wrongMsg: "This is a mix of crushed rocks, not pure Ilmenite! (-8s Oxygen)"
+      name: "Impact Breccia",
+      color: "#94a3b8",
+      clue: "Sharp rock fragments welded together by meteorite impacts."
+    },
+    {
+      icon: "🌋",
+      name: "Mare Basalt",
+      color: "#475569",
+      clue: "Dark, heavy volcanic lava rock from ancient lunar seas."
+    },
+    {
+      icon: "💎",
+      name: "Green Olivine",
+      color: "#4ade80",
+      clue: "Crystalline magnesium-iron silicate from the Moon's deep mantle."
     }
   ]
 };
